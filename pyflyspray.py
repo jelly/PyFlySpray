@@ -48,7 +48,6 @@ class Bugtracker(object):
             urllib2.HTTPSHandler(debuglevel=0),
             urllib2.HTTPCookieProcessor(self.cj)
         )
-        #<div class="errpadding">Error #7: Login failed, password incorrect!</div>
         output = self.login()
 
     def login(self):
