@@ -2,31 +2,28 @@
 # -*- coding: utf-8 -*-
 
 import ConfigParser, cookielib, urllib2, urllib
-from BeautifulSoup import BeautifulSoup
+from lxml.html import parse, tostring, fromstring
 
 def parse_bugtrackerpage(url,count=1):
     # open bugtracker / parse 
-    page = urllib2.urlopen(url)
-    soup =  BeautifulSoup(page)
-    data = soup.findAll("td",{"class":"task_id"})
+    page = urllib.urlopen(url)
+    doc = fromstring(page.read())
+
     msg = ""
     pages = False
 
-    # Is there another page with unassigned bugs
-    if soup.findAll("a",{"id": "next" }) == []:
-        page = False
-    else:
-        print soup.findAll("a",{"id": "next"})
+    # Is there another page?
+    if doc.cssselect('td#numbers a#next') != []:
         count += 1
         pages = True
 
     print count
 
     # print all found bugs
-    for f in data:
-        title = f.a["title"].replace("Assigned |","")
-        title = f.a["title"].replace("| 0%","")
-        msg += "* [https://bugs.archlinux.org/task/%s FS#%s] %s \n" % (f.a.string,f.a.string,title)
+    for foo in doc.cssselect('td.task_id a'):
+        title = foo.get('title').replace("Assigned |","")
+        title = foo.get('title').replace("| 0%","")
+        msg += "* [https://bugs.archlinux.org/task/%s FS#%s] %s \n" % (foo.text,foo.text,title)
 
     if pages == True:
         new = "%s&pagenum=%s" % (url,count)
@@ -54,7 +51,6 @@ class Bugtracker(object):
         #<div class="errpadding">Error #7: Login failed, password incorrect!</div>
         output = self.login()
 
-    
     def login(self):
         "handle login, populate the cookie jar"
         login_data = urllib.urlencode({
@@ -78,8 +74,6 @@ class Bugtracker(object):
             url = "https://bugs.archlinux.org/index/proj?string=&project=&search_name=&type%5B0%5D=&sev%5B0%5D=&pri%5B0%5D=&due%5B0%5D=0&reported%5B0%5D=&cat%5B0%5D=&status%5B0%5D=1&percent%5B0%5D=&opened=&dev=&closed=&duedatefrom=&duedateto=&changedfrom=&changedto=&openedfrom=&openedto=&closedfrom=&closedto=&do=index&order=dateopened&sort=desc" 
             url = url.replace('proj?','proj'+str(id)+'?')
             url = url.replace('project=','project='+str(id))
-            print 'the url'
-            print url
             msg = parse_bugtrackerpage(url)
         else:
             msg = 'Not a valid project\nValid projects are: '
@@ -87,11 +81,11 @@ class Bugtracker(object):
                 msg += track + ' '
 
         return msg
-        
+
 
 
 
 if __name__ == "__main__":
     bt = Bugtracker()
-    b= bt.getunassigned("UR")
+    b= bt.getunassigned("Community")
     print b;
