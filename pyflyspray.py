@@ -19,11 +19,16 @@ def parse_bugtrackerpage(url,count=1):
 
     print count
 
-    # print all found bugs
-    for foo in doc.cssselect('td.task_id a'):
-        title = foo.get('title').replace("Assigned |","")
-        title = foo.get('title').replace("| 0%","")
-        msg += "* [https://bugs.archlinux.org/task/%s FS#%s] %s \n" % (foo.text,foo.text,title)
+    bugs = doc.cssselect('td.task_id a')
+    if bugs != []:
+
+        # all found bugs on a page
+        for foo in bugs:
+            title = foo.get('title').replace("Assigned |","")
+            title = foo.get('title').replace("| 0%","")
+            msg += "* [https://bugs.archlinux.org/task/%s FS#%s] %s \n" % (foo.text,foo.text,title)
+    elif bugs == [] and count == 0:
+        return 'no bugs found'
 
     if pages == True:
         new = "%s&pagenum=%s" % (url,count)
@@ -92,6 +97,6 @@ class Bugtracker(object):
 
 if __name__ == "__main__":
     bt = Bugtracker()
-#    b= bt.getunassigned("Community")
-    b2 = bt.getassignedbugs('jelly')
-    print b2;
+    b= bt.getunassigned("Archlinux")
+    #b = bt.getassignedbugs('jelly')
+    print b;
