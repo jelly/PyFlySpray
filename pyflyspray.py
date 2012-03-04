@@ -81,10 +81,17 @@ class Bugtracker(object):
 
         return msg
 
+    def getassignedbugs(self,maintainer):
+        url = "https://bugs.archlinux.org/index.php?string=&project=0&search_name=&type%5B%5D=&sev%5B%5D=&pri%5B%5D=&due%5B%5D=&reported%5B%5D=&cat%5B%5D=&status%5B%5D=open&percent%5B%5D=&opened=&dev=&closed=&duedatefrom=&duedateto=&changedfrom=&changedto=&openedfrom=&openedto=&closedfrom=&closedto=&do=index"
+        url = url.replace('dev=','dev='+maintainer)
+        print url
+        return parse_bugtrackerpage(url)
+
 
 
 
 if __name__ == "__main__":
     bt = Bugtracker()
-    b= bt.getunassigned("Community")
-    print b;
+#    b= bt.getunassigned("Community")
+    b2 = bt.getassignedbugs('jelly')
+    print b2;
