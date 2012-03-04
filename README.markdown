@@ -4,7 +4,7 @@ An tool to view or get information from Archlinux's bugtracker.
 Dependencies
 ------------
 * python2
-* BeautifulSoup
+* lxml
 
 Usage
 -----
