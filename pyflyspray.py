@@ -1,14 +1,14 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import ConfigParser, cookielib, urllib2, urllib
+import urllib.request, urllib.parse
 from lxml.html import parse, tostring, fromstring
 import re
 
 def parse_bugtrackerpage(url,count=1):
     # open bugtracker / parse 
-    page = urllib.urlopen(url)
-    doc = fromstring(page.read())
+    page = urllib.request.urlopen(url)
+    doc = fromstring(page.read().decode())
 
     msg = ""
     pages = False
@@ -18,7 +18,7 @@ def parse_bugtrackerpage(url,count=1):
         count += 1
         pages = True
 
-    print '...'
+    print ('...')
 
     bugs = doc.cssselect('td.task_id a')
     if bugs != []:
@@ -41,52 +41,24 @@ def gettrackerurl(url,tracker):
         trackers = {"Archlinux": 1 , "AUR": 2, "Community" :5,"Pacman": 3,"ReleaseEngineering":6}
 
         # Fix proj,project
-        if tracker in trackers.keys():
+        if tracker in trackers:
             id = trackers[tracker]
             url = url.replace('proj?','proj'+str(id)+'?')
             url = url.replace('project=','project='+str(id))
         else:
             url = 'Not a valid project\nValid projects are: '
-            for track in trackers.keys():
+            for track in trackers:
                 url += track + ' '
 
         return url
 
 class Bugtracker(object):
-    def __init__(self):
-
-        # Retreive user information
-        config = ConfigParser.ConfigParser()
-        config.read("config.cfg")
-        self.user = config.get("data","user")
-        self.password = config.get("data","password")
-        self.login_page = "https://bugs.archlinux.org/index.php?do=authenticate"
-        self.cj = cookielib.CookieJar()
-        self.opener = urllib2.build_opener(
-            urllib2.HTTPRedirectHandler(),
-            urllib2.HTTPHandler(debuglevel=0),
-            urllib2.HTTPSHandler(debuglevel=0),
-            urllib2.HTTPCookieProcessor(self.cj)
-        )
-        output = self.login()
-
-    def login(self):
-        "handle login, populate the cookie jar"
-        login_data = urllib.urlencode({
-            "user_name" : self.user,
-            "password" : self.password,
-            "remember_login" : "on",
-            #"return_to" : None,
-        })
-        response = self.opener.open(self.login_page, login_data, timeout=10)
-
-        return "".join(response.readlines())
 
     def getunassigned(self,tracker):
             url = "https://bugs.archlinux.org/index/proj?string=&project=&search_name=&type%5B0%5D=&sev%5B0%5D=&pri%5B0%5D=&due%5B0%5D=0&reported%5B0%5D=&cat%5B0%5D=&status%5B0%5D=1&percent%5B0%5D=&opened=&dev=&closed=&duedatefrom=&duedateto=&changedfrom=&changedto=&openedfrom=&openedto=&closedfrom=&closedto=&do=index&order=dateopened&sort=desc" 
             targeturl = gettrackerurl(url,tracker)
             if 'https' in targeturl:
-                print 'Fetching data...'
+                print ('Fetching data...')
                 return parse_bugtrackerpage(targeturl)
             else:
                 return targeturl
@@ -95,7 +67,7 @@ class Bugtracker(object):
     def getassignedbugs(self,maintainer):
         url = "https://bugs.archlinux.org/index.php?string=&project=0&search_name=&type%5B%5D=&sev%5B%5D=&pri%5B%5D=&due%5B%5D=&reported%5B%5D=&cat%5B%5D=&status%5B%5D=open&percent%5B%5D=&opened=&dev=&closed=&duedatefrom=&duedateto=&changedfrom=&changedto=&openedfrom=&openedto=&closedfrom=&closedto=&do=index"
         url = url.replace('dev=','dev='+maintainer)
-        print 'Fetching data...'
+        print ('Fetching data...')
         return parse_bugtrackerpage(url)
 
     def getbugsopensince(self,tracker,date):
@@ -105,7 +77,7 @@ class Bugtracker(object):
             targeturl = gettrackerurl(url,tracker)
             if 'https' in targeturl:
                 targeturl = targeturl.replace('bugdate',date)
-                print 'Fetching data...'
+                print ('Fetching data...')
                 return parse_bugtrackerpage(targeturl)
             else:
                 return targeturl
@@ -115,6 +87,7 @@ class Bugtracker(object):
 
 if __name__ == "__main__":
     bt = Bugtracker()
-    print bt.getunassigned("Archlinux")
-    print  bt.getassignedbugs('jelly')
-    print  bt.getbugsopensince("Archlinux","2010-06-01")
+    print (bt.getunassigned("Archlinux"))
+    print (bt.getunassigned("Community"))
+    #print  bt.getassignedbugs('jelly')
+    #print  bt.getbugsopensince("Archlinux","2010-06-01")
