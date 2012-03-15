@@ -3,7 +3,7 @@
 
 import urllib.request, urllib.parse
 from lxml.html import parse, tostring, fromstring
-import re
+import argparse, re
 
 def parse_bugtrackerpage(url,count=1):
     # open bugtracker / parse 
@@ -70,7 +70,7 @@ class Bugtracker(object):
         print ('Fetching data...')
         return parse_bugtrackerpage(url)
 
-    def getbugsopensince(self,tracker,date):
+    def getbugsopensince(self,date,tracker):
         if re.match(r"(?:(19|20)[0-9]{2}[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01]))\Z", date):
 
             url = "https://bugs.archlinux.org/index.php?string=&project=&type%5B%5D=&sev%5B%5D=&pri%5B%5D=&due%5B%5D=&reported%5B%5D=&cat%5B%5D=&status%5B%5D=open&percent%5B%5D=&opened=&dev=&closed=&duedatefrom=&duedateto=&changedfrom=&changedto=&openedfrom=&openedto=bugdate&closedfrom=&closedto=&do=index"
@@ -86,8 +86,20 @@ class Bugtracker(object):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Interface to the Archlinux Bugtracker')
+    parser.add_argument('-u','--unassigned', help='Fetch unassigned bugs from Archlinux,AUR,Community,Pacman or ReleaseEngineering', required=False)
+    parser.add_argument('-a','--assigned', help='Fetch assigned bugs by given maintainer from bugs.archlinux.org', required=False)
+    parser.add_argument('-o','--openbugs', help='Fetch open bugs since given date yyyy-mm-dd and tracker', required=False,nargs=2)
+    parser.add_argument('--version', action='version', version='%(prog)s 1.0')
+
+    args = vars(parser.parse_args())
     bt = Bugtracker()
-    print (bt.getunassigned("Archlinux"))
-    print (bt.getunassigned("Community"))
-    #print  bt.getassignedbugs('jelly')
-    #print  bt.getbugsopensince("Archlinux","2010-06-01")
+    if args['unassigned']:
+        print (bt.getunassigned(args['unassigned']))
+    if args['assigned']:
+        print (bt.getassignedbugs(args['assigned']))
+    if args['openbugs']:
+        print (bt.getbugsopensince(args['openbugs'][0],args['openbugs'][1]))
+
+
+
