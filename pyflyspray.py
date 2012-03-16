@@ -3,7 +3,7 @@
 
 import urllib.request, urllib.parse
 from lxml.html import parse, tostring, fromstring
-import argparse, re
+import argparse, re,sys
 
 def parse_bugtrackerpage(url,count=1):
     # open bugtracker / parse 
@@ -18,7 +18,7 @@ def parse_bugtrackerpage(url,count=1):
         count += 1
         pages = True
 
-    print ('...')
+    sys.stdout.write('..'*count+'\r')
 
     bugs = doc.cssselect('td.task_id a')
     if bugs != []:
@@ -58,7 +58,7 @@ class Bugtracker(object):
             url = "https://bugs.archlinux.org/index/proj?string=&project=&search_name=&type%5B0%5D=&sev%5B0%5D=&pri%5B0%5D=&due%5B0%5D=0&reported%5B0%5D=&cat%5B0%5D=&status%5B0%5D=1&percent%5B0%5D=&opened=&dev=&closed=&duedatefrom=&duedateto=&changedfrom=&changedto=&openedfrom=&openedto=&closedfrom=&closedto=&do=index&order=dateopened&sort=desc" 
             targeturl = gettrackerurl(url,tracker)
             if 'https' in targeturl:
-                print ('Fetching data...')
+                print('Fetching data')
                 return parse_bugtrackerpage(targeturl)
             else:
                 return targeturl
@@ -67,7 +67,7 @@ class Bugtracker(object):
     def getassignedbugs(self,maintainer):
         url = "https://bugs.archlinux.org/index.php?string=&project=0&search_name=&type%5B%5D=&sev%5B%5D=&pri%5B%5D=&due%5B%5D=&reported%5B%5D=&cat%5B%5D=&status%5B%5D=open&percent%5B%5D=&opened=&dev=&closed=&duedatefrom=&duedateto=&changedfrom=&changedto=&openedfrom=&openedto=&closedfrom=&closedto=&do=index"
         url = url.replace('dev=','dev='+maintainer)
-        print ('Fetching data...')
+        print('Fetching data')
         return parse_bugtrackerpage(url)
 
     def getbugsopensince(self,date,tracker):
@@ -77,7 +77,7 @@ class Bugtracker(object):
             targeturl = gettrackerurl(url,tracker)
             if 'https' in targeturl:
                 targeturl = targeturl.replace('bugdate',date)
-                print ('Fetching data...')
+                print('Fetching data')
                 return parse_bugtrackerpage(targeturl)
             else:
                 return targeturl
