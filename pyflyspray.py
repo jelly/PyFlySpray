@@ -5,6 +5,14 @@ import urllib.request, urllib.parse
 from lxml.html import parse, tostring, fromstring
 import argparse, re,sys
 
+def unify(data):
+   # Not order preserving
+   checked = []
+   for e in data:
+       if e.text not in checked:
+           checked.append(e.text)
+   return checked
+
 def parse_bugtrackerpage(url,count=1,orphans=[]):
     # open bugtracker / parse 
     page = urllib.request.urlopen(url)
@@ -107,12 +115,25 @@ class Bugtracker(object):
         doc = fromstring(page.read().decode())
         # list of orphans
         foo =  doc.cssselect('table.results tr td a')
-        new = []
-        for f in foo:
-            f = f.text
-            new.append(f)
+
+        outlist = unify(foo)
         print('Fetching data')
-        return parse_bugtrackerpage(bugsurl,1,new)
+        return parse_bugtrackerpage(bugsurl,1,outlist)
+    def getorphans(self,tracker):
+        if tracker == 'Community':
+            orphanurl = "http://www.archlinux.org/packages/?sort=&repo=Community&q=&maintainer=orphan&last_update=&flagged=&limit=all" 
+        elif tracker == 'Archlinux':
+            orphanurl ="http://www.archlinux.org/packages/?sort=&repo=Core&repo=Extra&repo=Testing&q=&maintainer=orphan&last_update=&flagged=&limit=all"
+        else:
+            return "not a valid tracker"
+
+        page = urllib.request.urlopen(orphanurl)
+        doc = fromstring(page.read().decode())
+        # list of orphans
+        foo =  doc.cssselect('table.results tr td a')
+        for item in foo:
+            msg = "* %s - http://archlinux.org%s" % (item.text,item.get('href'))
+            print (msg)
 
 
 
@@ -122,6 +143,7 @@ if __name__ == "__main__":
     parser.add_argument('-a','--assigned', help='Fetch assigned bugs by given maintainer from bugs.archlinux.org', required=False)
     parser.add_argument('-o','--openbugs', help='Fetch open bugs since given date yyyy-mm-dd and tracker', required=False,nargs=2)
     parser.add_argument('-b','--orphanbugs', help='Fetch orphan bugs from Archlinux or Community', required=False)
+    parser.add_argument('-s','--orphans', help='Fetch orphans from Archlinux or Community', required=False)
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 
     args = vars(parser.parse_args())
@@ -134,3 +156,5 @@ if __name__ == "__main__":
         print (bt.getbugsopensince(args['openbugs'][0],args['openbugs'][1]))
     if args['orphanbugs']:
         print (bt.getorphanbugs(args['orphanbugs']))
+    if args['orphans']:
+        print (bt.getorphans(args['orphans']))
