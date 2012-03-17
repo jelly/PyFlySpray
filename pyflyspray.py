@@ -138,12 +138,13 @@ class Bugtracker(object):
 
 
 if __name__ == "__main__":
+    Trackers = ['Archlinux','Community','AUR','Pacman','ReleaseEngineering']
     parser = argparse.ArgumentParser(description='Interface to the Archlinux Bugtracker')
-    parser.add_argument('-u','--unassigned', help='Fetch unassigned bugs from Archlinux,AUR,Community,Pacman or ReleaseEngineering', required=False)
+    parser.add_argument('-u','--unassigned', help='Fetch unassigned bugs from Archlinux,AUR,Community,Pacman or ReleaseEngineering',choices=Trackers, required=False)
     parser.add_argument('-a','--assigned', help='Fetch assigned bugs by given maintainer from bugs.archlinux.org', required=False)
-    parser.add_argument('-o','--openbugs', help='Fetch open bugs since given date yyyy-mm-dd and tracker', required=False,nargs=2)
-    parser.add_argument('-b','--orphanbugs', help='Fetch orphan bugs from Archlinux or Community', required=False)
-    parser.add_argument('-s','--orphans', help='Fetch orphans from Archlinux or Community', required=False)
+    parser.add_argument('-o','--openbugs', help='Fetch open bugs since given date yyyy-mm-dd and tracker',required=False,nargs=2)
+    parser.add_argument('-b','--orphanbugs', help='Fetch orphan bugs from Archlinux or Community',choices=Trackers[:2], required=False)
+    parser.add_argument('-s','--orphans', help='Fetch orphans from Archlinux or Community', choices=Trackers[:2], required=False)
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 
     args = vars(parser.parse_args())
