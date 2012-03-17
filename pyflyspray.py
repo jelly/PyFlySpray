@@ -158,3 +158,5 @@ if __name__ == "__main__":
         print (bt.getorphanbugs(args['orphanbugs']))
     if args['orphans']:
         print (bt.getorphans(args['orphans']))
+    else:
+        parser.print_help()
