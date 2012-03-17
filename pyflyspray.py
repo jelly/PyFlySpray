@@ -61,7 +61,7 @@ def gettrackerurl(url,tracker):
         if tracker in trackers:
             id = trackers[tracker]
             url = url.replace('proj?','proj'+str(id)+'?')
-            url = url.replace('project=','project='+str(id))
+            url = url.replace('project=','project=%s' % str(id))
         else:
             url = 'Not a valid project\nValid projects are: '
             for track in trackers:
@@ -150,13 +150,13 @@ if __name__ == "__main__":
     bt = Bugtracker()
     if args['unassigned']:
         print (bt.getunassigned(args['unassigned']))
-    if args['assigned']:
+    elif args['assigned']:
         print (bt.getassignedbugs(args['assigned']))
-    if args['openbugs']:
+    elif args['openbugs']:
         print (bt.getbugsopensince(args['openbugs'][0],args['openbugs'][1]))
-    if args['orphanbugs']:
+    elif args['orphanbugs']:
         print (bt.getorphanbugs(args['orphanbugs']))
-    if args['orphans']:
+    elif args['orphans']:
         print (bt.getorphans(args['orphans']))
     else:
         parser.print_help()
