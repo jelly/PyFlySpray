@@ -3,15 +3,109 @@
 
 import urllib.request, urllib.parse
 from lxml.html import parse, tostring, fromstring
-import argparse, re,sys
 
-def unify(data):
-   # Not order preserving
-   checked = []
-   for e in data:
-       if e.text not in checked:
-           checked.append(e.text)
-   return checked
+trackers = {"Archlinux": 1 , "AUR": 2, "Community" :5,"Pacman": 3,"ReleaseEngineering":6}
+
+
+def getflyspraypage(tracker,due_in_version,status,assigned,openedfrom,openedto):
+    """
+    Retreive the FlySpray website with custom parameters
+
+    Args:
+        tracker - string  
+        due_in_version - int  (0 or ""(1), unassigned or due in any version)
+        status - int  (open (0),1,3 - all open tasks, unconfirmed, assigned)
+        assigned - string ("" or "developer" )
+        openedfrom - string (yyyy-mm-dd)
+        openedto - string (yyyy-mm-dd)
+    Returns:
+        string raw html
+    """
+    url = "https://bugs.archlinux.org/index.php?string=&project=1&search_name=&type[]=&sev[]=&pri[]=&due[]=&reported[]=&cat[]=&status[]=open&percent[]=&opened=&dev=&closed=&duedatefrom=&duedateto=&changedfrom=&changedto=&openedfrom=&openedto=&closedfrom=&closedto=&do=index [-]"
+
+    if tracker != "":
+        url = url.replace('',trackers[tracker])
+
+
+    try:
+        page = urllib.request.urlopen(url)
+    except ValueError:
+        print ("Couldn't parse source {0} ".format(url))
+
+    return page.read().decode()
+
+def getarchwebpage(repo,maintainer,pkgname):
+    """
+    Retreive archweb website with custom parameters
+
+    Args:
+        repo - Community,Core,Extra,Multilib
+        maintainer - maintainer name
+        pkgname - name of the package
+
+    Returns:
+        raw html string
+    """
+
+    # Format url
+    url = "http://www.archlinux.org/packages/?sort=&repo=reponame&q=&maintainer=&last_update=&flagged=&limit=all" 
+    url = url.replace('reponame',repo)
+
+    if maintainer != "":
+        url = url.replace('maintainer=','maintainer=' + maintainer)
+
+    if pkgname != "":
+        url = url.replace('q=','q=' + pkgname)
+
+    try:
+        page = urllib.request.urlopen(url)
+    except ValueError:
+        print ("Couldn't parse source {0} ".format(url))
+
+    return page.read().decode()
+    
+
+def getorphans(repo):
+    """
+    Retreives a list of orphans
+    
+    Args:
+        repo - string
+    Returns:
+        List of orphans 
+    """
+
+    page = getarchwebpage(repo,'','')
+
+    # Declare variables
+    olditem =  ""
+    orphanlist = []
+
+    # Read html with Lxml.html
+    doc = fromstring(page)
+
+    # list of orphans
+    orphans =  doc.cssselect('table.results tr td a')
+
+    # Loop over the packages, compare the old package with the new package so we don't have duplicates.
+    # This is needed since there are unique i686 and x86_64 bit packages.
+    for item in orphans:
+        if item.text != olditem:
+            orphanlist.append(item.text)
+        olditem = item.text
+
+    return orphanlist
+
+def getbugtracker():
+    foo = ""
+
+def parse_(url):
+    page = urllib.request.urlopen(url)
+    doc = fromstring(page.read().decode())
+
+
+
+
 
 def parse_bugtrackerpage(url,count=1,orphans=[]):
     # open bugtracker / parse 
@@ -134,30 +228,3 @@ class Bugtracker(object):
         for item in foo:
             msg = "* %s - http://archlinux.org%s" % (item.text,item.get('href'))
             print (msg)
-
-
-
-if __name__ == "__main__":
-    Trackers = ['Archlinux','Community','AUR','Pacman','ReleaseEngineering']
-    parser = argparse.ArgumentParser(description='Interface to the Archlinux Bugtracker')
-    parser.add_argument('-u','--unassigned', help='Fetch unassigned bugs from Archlinux,AUR,Community,Pacman or ReleaseEngineering',choices=Trackers, required=False)
-    parser.add_argument('-a','--assigned', help='Fetch assigned bugs by given maintainer from bugs.archlinux.org', required=False)
-    parser.add_argument('-o','--openbugs', help='Fetch open bugs since given date yyyy-mm-dd and tracker',required=False,nargs=2)
-    parser.add_argument('-b','--orphanbugs', help='Fetch orphan bugs from Archlinux or Community',choices=Trackers[:2], required=False)
-    parser.add_argument('-s','--orphans', help='Fetch orphans from Archlinux or Community', choices=Trackers[:2], required=False)
-    parser.add_argument('--version', action='version', version='%(prog)s 1.0')
-
-    args = vars(parser.parse_args())
-    bt = Bugtracker()
-    if args['unassigned']:
-        print (bt.getunassigned(args['unassigned']))
-    elif args['assigned']:
-        print (bt.getassignedbugs(args['assigned']))
-    elif args['openbugs']:
-        print (bt.getbugsopensince(args['openbugs'][0],args['openbugs'][1]))
-    elif args['orphanbugs']:
-        print (bt.getorphanbugs(args['orphanbugs']))
-    elif args['orphans']:
-        print (bt.getorphans(args['orphans']))
-    else:
-        parser.print_help()
