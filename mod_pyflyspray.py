@@ -75,7 +75,7 @@ def getorphans(repo):
         List of orphans 
     """
 
-    page = getarchwebpage(repo,'','')
+    page = getarchwebpage(repo,'orphan','')
 
     # Declare variables
     olditem =  ""
