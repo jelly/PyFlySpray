@@ -4,7 +4,7 @@
 import urllib.request, urllib.parse
 from lxml.html import parse, tostring, fromstring
 
-trackers = {"Archlinux": 1 , "AUR": 2, "Community" :5,"Pacman": 3,"ReleaseEngineering":6}
+trackers = {"All": 0 ,"Archlinux": 1 , "AUR": 2, "Community" :5,"Pacman": 3,"ReleaseEngineering":6}
 
 
 def getflyspraypage(tracker,due_in_version,status,assigned,openedfrom,openedto):
@@ -18,13 +18,14 @@ def getflyspraypage(tracker,due_in_version,status,assigned,openedfrom,openedto):
         assigned - string ("" or "developer" )
         openedfrom - string (yyyy-mm-dd)
         openedto - string (yyyy-mm-dd)
+        pkgname - string
     Returns:
         string raw html
     """
-    url = "https://bugs.archlinux.org/index.php?string=&project=1&search_name=&type[]=&sev[]=&pri[]=&due[]=&reported[]=&cat[]=&status[]=open&percent[]=&opened=&dev=&closed=&duedatefrom=&duedateto=&changedfrom=&changedto=&openedfrom=&openedto=&closedfrom=&closedto=&do=index [-]"
 
-    if tracker != "":
-        url = url.replace('',trackers[tracker])
+    url = "https://bugs.archlinux.org/index.php?string={0}&project={1}&search_name=&type[]=&sev[]=&pri[]=&due[]={2}&reported[]=&cat[]=&status[]={3}&percent[]=&opened=&dev={4}&closed=&duedatefrom=&duedateto=&changedfrom=&changedto=&openedfrom={5}&openedto={6}&closedfrom=&closedto=&do=index [-]"
+    #url.format(trackers[tracker],
+
 
 
     try:
@@ -39,17 +40,19 @@ def getarchwebpage(repo,maintainer,pkgname):
     Retreive archweb website with custom parameters
 
     Args:
-        repo - Community,Core,Extra,Multilib
+        repo - All,Community-Testing,Core,Extra,Multilib,Testing
         maintainer - maintainer name
         pkgname - name of the package
 
     Returns:
         raw html string
     """
-
     # Format url
     url = "http://www.archlinux.org/packages/?sort=&repo=reponame&q=&maintainer=&last_update=&flagged=&limit=all" 
-    url = url.replace('reponame',repo)
+    if repo == "All":
+        url = url.replace('&repo=reponame','')
+    else:
+        url = url.replace('reponame',repo)
 
     if maintainer != "":
         url = url.replace('maintainer=','maintainer=' + maintainer)
@@ -228,3 +231,4 @@ class Bugtracker(object):
         for item in foo:
             msg = "* %s - http://archlinux.org%s" % (item.text,item.get('href'))
             print (msg)
+
