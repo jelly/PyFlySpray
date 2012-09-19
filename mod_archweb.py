@@ -7,7 +7,7 @@ import urllib.request, urllib.parse
 from lxml.html import parse, tostring, fromstring
 
 # Base url 
-repository = ('All','Community-Testing','Core','Extra','Testing','Multilib')
+repository = ('All','Community','Community-Testing','Core','Extra','Testing','Multilib')
 
 def getarchwebpage(repo,maintainer="",pkgname="",flagged=""):
     """
@@ -67,7 +67,6 @@ def getpackagelist(page):
 
     return pkglist
 
-
 def getorphans(repo):
     """
     Retreives a list of orphans
@@ -77,10 +76,11 @@ def getorphans(repo):
     Returns:
         List of orphans
     """
-
-    page = getarchwebpage(repo,'orphan')
-
-    return getpackagelist(page)
+    if repo == 'Archlinux':
+        return getpackagelist(getarchwebpage('Extra','orphan')) + getpackagelist(getarchwebpage('Core','orphan'))
+    else:
+        page = getarchwebpage(repo,'orphan')
+        return getpackagelist(page)
 
 
 def findpackage(name):
