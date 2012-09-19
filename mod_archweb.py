@@ -7,7 +7,7 @@ import urllib.request, urllib.parse
 from lxml.html import parse, tostring, fromstring
 
 # Base url 
-repository = ['All','Community-Testing','Core','Extra','Testing','Multilib']
+repository = ('All','Community-Testing','Core','Extra','Testing','Multilib')
 
 def getarchwebpage(repo,maintainer="",pkgname="",flagged=""):
     """
@@ -47,6 +47,26 @@ def getarchwebpage(repo,maintainer="",pkgname="",flagged=""):
 
     return page.read().decode()
 
+def getpackagelist(page):
+    # Declare variables
+    olditem =  ""
+    pkglist = []
+
+    # Read html with Lxml.html
+    doc = fromstring(page)
+
+    # list of packages 
+    packages =  doc.cssselect('table.results tr td a')
+
+    # Loop over the packages, compare the old package with the new package so we don't have duplicates.
+    # This is needed since there are unique i686 and x86_64 bit packages.
+    for item in packages:
+        if item.text != olditem:
+            pkglist.append(item.text)
+        olditem = item.text
+
+    return pkglist
+
 
 def getorphans(repo):
     """
@@ -60,21 +80,6 @@ def getorphans(repo):
 
     page = getarchwebpage(repo,'orphan')
 
-    # Declare variables
-    olditem =  ""
-    orphanlist = []
+    return getpackagelist(page)
 
-    # Read html with Lxml.html
-    doc = fromstring(page)
 
-    # list of orphans
-    orphans =  doc.cssselect('table.results tr td a')
-
-    # Loop over the packages, compare the old package with the new package so we don't have duplicates.
-    # This is needed since there are unique i686 and x86_64 bit packages.
-    for item in orphans:
-        if item.text != olditem:
-            orphanlist.append(item.text)
-        olditem = item.text
-
-    return orphanlist
