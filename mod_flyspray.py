@@ -48,6 +48,7 @@ def getflyspraypage(tracker="All",pkgname="",due_in_version=False,status=0,assig
 
 def getunassignedbugs(tracker):
     """
+    Fetches unassigned bugs from a given tracker
     """
     bugs = getflyspraypage(tracker,"",True,1)
     msg = "* [{} FS#{}] - {}"
@@ -57,6 +58,7 @@ def getunassignedbugs(tracker):
 
 def searchbug(tracker,name):
     """
+    Fetches bugs filtered by a search string
     """
     bugs = getflyspraypage(tracker,name)
     print("Found Bugs")
@@ -66,12 +68,17 @@ def searchbug(tracker,name):
 
 def getoldbugs(tracker,date):
     """
+    Fetches bugs openend and still open till a given date
     """
     bugs = getflyspraypage(tracker,"",False,0,"","",date)
     print("Bugs open since {}".format(date))
     msg = "* [{} FS#{}] - {}"
     for bug in bugs:
         print(msg.format(bug['url'],bug['id'],bug['summary']))
+
+def getallbugs(tracker):
+    return getflyspraypage(tracker)
+
 
 
 def parse_bugtrackerpage(url,count=1):
