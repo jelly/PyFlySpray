@@ -83,3 +83,16 @@ def getorphans(repo):
     return getpackagelist(page)
 
 
+def findpackage(name):
+    """
+    Retreives a list of found package names
+
+    Args:
+        name - string
+    Returns:
+        List of found results
+    """
+
+    page = getarchwebpage('All','',name)
+
+    return getpackagelist(page)
