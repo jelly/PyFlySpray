@@ -4,6 +4,7 @@
 import urllib.request, urllib.parse
 from lxml.html import parse, tostring, fromstring
 import argparse, re,sys
+import time
 
 def unify(data):
    # Not order preserving
@@ -88,7 +89,8 @@ class Bugtracker(object):
         return parse_bugtrackerpage(url)
 
     def getbugsopensince(self,date,tracker):
-        if re.match(r"(?:(19|20)[0-9]{2}[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01]))\Z", date):
+        try:
+            time.strptime(date,'%Y-%m-%d')
 
             url = "https://bugs.archlinux.org/index.php?string=&project=&type%5B%5D=&sev%5B%5D=&pri%5B%5D=&due%5B%5D=&reported%5B%5D=&cat%5B%5D=&status%5B%5D=open&percent%5B%5D=&opened=&dev=&closed=&duedatefrom=&duedateto=&changedfrom=&changedto=&openedfrom=&openedto=bugdate&closedfrom=&closedto=&do=index"
             targeturl = gettrackerurl(url,tracker)
@@ -98,7 +100,7 @@ class Bugtracker(object):
                 return parse_bugtrackerpage(targeturl)
             else:
                 return targeturl
-        else:
+        except ValueError:
             return 'Not a valid date format, use yyyy-mm-dd'
 
     def getorphanbugs(self,tracker):
